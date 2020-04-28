@@ -1,4 +1,5 @@
 import time
+from os.path import join as pjoin
 from options.train_options import TrainOptions
 from models import create_model
 from util.visualizer import Visualizer
@@ -9,10 +10,19 @@ import torchvision.transforms as transforms
 
 from util import util
 
-if __name__ == '__main__':
-    opt = TrainOptions().parse()
 
-    opt.dataroot = './dataset/ilsvrc2012/%s/' % opt.phase
+class Options(TrainOptions):
+    def initialize(self, parser):
+        super().initialize(parser)
+        parser.add_argument('--data_path')
+        return parser
+
+
+if __name__ == '__main__':
+
+    opt = Options().parse()
+
+    opt.dataroot = pjoin(opt.data_path, opt.phase)
     dataset = torchvision.datasets.ImageFolder(opt.dataroot,
                                                transform=transforms.Compose([
                                                    transforms.RandomChoice([transforms.Resize(opt.loadSize, interpolation=1),
