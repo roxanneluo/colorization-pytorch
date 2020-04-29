@@ -1,9 +1,9 @@
 set -x
 
-SIZE="256"
+SIZE="$1"
 FFHQ="dataset/ffhq"
 
-FLAGS="--loadSize ${SIZE} --fineSize ${SIZE} --data_path ${FFHQ}"
+FLAGS="--loadSize ${SIZE} --fineSize ${SIZE} --data_path ${FFHQ} --display_freq 200 --update_html_freq 1000"
 
 # Train classification network on small training set first
 #python train.py --name siggraph_class_small --sample_p 1.0 --niter 100 --niter_decay 0 --classification --phase train_small ${FLAGS}
