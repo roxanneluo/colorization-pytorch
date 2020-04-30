@@ -15,18 +15,26 @@ from IPython import embed
 import numpy as np
 
 
+class Options(TrainOptions):
+    def initialize(self, parser):
+        super().initialize(parser)
+        parser.add_argument('--dataroot')
+        parser.add_argument('--test_name', default='ffhq')
+        return parser
+
+
 if __name__ == '__main__':
     sample_ps = [1., .125, .03125]
     to_visualize = ['gray', 'hint', 'hint_ab', 'fake_entr', 'real', 'fake_reg', 'real_ab', 'fake_ab_reg', ]
     S = len(sample_ps)
 
-    opt = TrainOptions().parse()
+    opt = Options().parse()
     opt.load_model = True
     opt.nThreads = 1   # test code only supports nThreads = 1
     opt.batch_size = 1  # test code only supports batch_size = 1
     opt.display_id = -1  # no visdom display
     opt.phase = 'val'
-    opt.dataroot = './dataset/ilsvrc2012/%s/' % opt.phase
+    # opt.dataroot = './dataset/ilsvrc2012/%s/' % opt.phase
     opt.serial_batches = True
     opt.aspect_ratio = 1.
 
@@ -41,8 +49,8 @@ if __name__ == '__main__':
     model.eval()
 
     # create website
-    web_dir = os.path.join(opt.results_dir, opt.name, '%s_%s' % (opt.phase, opt.which_epoch))
-    webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (opt.name, opt.phase, opt.which_epoch))
+    web_dir = os.path.join(opt.results_dir, opt.name, opt.test_name, '%s_%s' % (opt.phase, opt.which_epoch))
+    webpage = html.HTML(web_dir, 'Experiment = %s, TestSet= %s, Phase = %s, Epoch = %s' % (opt.name, opt.test_name, opt.phase, opt.which_epoch))
 
     # statistics
     psnrs = np.zeros((opt.how_many, S))
@@ -54,7 +62,7 @@ if __name__ == '__main__':
 
         # with no points
         for (pp, sample_p) in enumerate(sample_ps):
-            img_path = [string.replace('%08d_%.3f' % (i, sample_p), '.', 'p')]
+            img_path = [('%08d_%.3f' % (i, sample_p)).replace('.', 'p')]
             data = util.get_colorization_data(data_raw, opt, ab_thresh=0., p=sample_p)
 
             model.set_input(data)
