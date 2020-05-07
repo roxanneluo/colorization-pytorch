@@ -31,9 +31,9 @@ if __name__ == '__main__':
                                                                             transforms.Resize((opt.loadSize, opt.loadSize), interpolation=1),
                                                                             transforms.Resize((opt.loadSize, opt.loadSize), interpolation=2),
                                                                             transforms.Resize((opt.loadSize, opt.loadSize), interpolation=3)]),
-                                                   transforms.RandomChoice([transforms.RandomResizedCrop(opt.fineSize, interpolation=1),
-                                                                            transforms.RandomResizedCrop(opt.fineSize, interpolation=2),
-                                                                            transforms.RandomResizedCrop(opt.fineSize, interpolation=3)]),
+                                                   #transforms.RandomChoice([transforms.RandomResizedCrop(opt.fineSize, interpolation=1),
+                                                                            #transforms.RandomResizedCrop(opt.fineSize, interpolation=2),
+                                                                            #transforms.RandomResizedCrop(opt.fineSize, interpolation=3)]),
                                                    transforms.RandomHorizontalFlip(),
                                                    transforms.ToTensor()]))
                                                    # transforms.RandomChoice([transforms.ColorJitter(brightness=.05, contrast=.05, saturation=.05, hue=.05),
