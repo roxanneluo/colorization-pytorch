@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     for i, data_raw in enumerate(dataset_loader):
         data_raw[0] = data_raw[0].cuda()
-        data_raw[0] = util.crop_mult(data_raw[0], mult=8)
+        data_raw[0] = util.crop_mult(data_raw[0], mult=8, HWmax=[4096, 4096])
 
         # with no points
         for (pp, sample_p) in enumerate(sample_ps):
