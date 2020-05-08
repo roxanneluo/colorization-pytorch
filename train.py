@@ -4,13 +4,12 @@ from options.train_options import TrainOptions
 from models import create_model
 from util.visualizer import Visualizer
 
-import numpy as np
-from PIL import ImageFilter
 import torch
 import torchvision
 import torchvision.transforms as transforms
 
 from util import util
+from util.transforms import RandomGaussianBlur
 
 
 class Options(TrainOptions):
@@ -18,17 +17,8 @@ class Options(TrainOptions):
         super().initialize(parser)
         parser.add_argument('--data_path')
         parser.add_argument('--blur_radius_stddev', type=float, default=0)
+        parser.add_argument('--noise_stddev', type=float, default=0)
         return parser
-
-
-class RandomGaussianBlur(object):
-    def __init__(self, stddev):
-        self.stddev = stddev
-
-    def __call__(self, image):
-        radius = np.abs(np.random.normal(scale=self.stddev))
-        return image.filter(ImageFilter.GaussianBlur(radius))
-
 
 
 def make_transform(opt):
@@ -46,9 +36,13 @@ def make_transform(opt):
         ]),
         transforms.RandomHorizontalFlip(),
     ]
+
     if opt.blur_radius_stddev > 0:
         Ts.append(RandomGaussianBlur(opt.blur_radius_stddev))
-    return transforms.Compose(Ts + [transforms.ToTensor()])
+
+    Ts.append(transforms.ToTensor())
+
+    return transforms.Compose(Ts)
 
 
 if __name__ == '__main__':

@@ -6,6 +6,9 @@ import os
 from collections import OrderedDict
 from IPython import embed
 
+from .transforms import RandomGaussianNoise
+
+
 # Converts a Tensor into an image array (numpy)
 # |imtype|: the desired type of the converted numpy array
 def tensor2im(input_image, imtype=np.uint8):
@@ -189,12 +192,16 @@ def lab2rgb(lab_rs, opt):
         # embed()
     return out
 
+
 def get_colorization_data(data_raw, opt, ab_thresh=5., p=.125, num_points=None):
     data = {}
 
     data_lab = rgb2lab(data_raw[0], opt)
     data['A'] = data_lab[:,[0,],:,:]
     data['B'] = data_lab[:,1:,:,:]
+
+    if opt.noise_stddev > 0:
+        data['A'] = RandomGaussianNoise(opt.noise_stddev)(data['A'])
 
     if(ab_thresh > 0): # mask out grayscale images
         thresh = 1.*ab_thresh/opt.ab_norm
@@ -205,7 +212,9 @@ def get_colorization_data(data_raw, opt, ab_thresh=5., p=.125, num_points=None):
         if(torch.sum(mask)==0):
             return None
 
-    return add_color_patches_rand_gt(data, opt, p=p, num_points=num_points)
+    data = add_color_patches_rand_gt(data, opt, p=p, num_points=num_points)
+
+    return data
 
 def add_color_patches_rand_gt(data,opt,p=.125,num_points=None,use_avg=True,samp='normal'):
 # Add random color points sampled from ground truth based on:

@@ -2,7 +2,8 @@ set -x
 
 SIZE="$1"
 BLUR_RADIUS_STDDEV="${2:-0}"
-FLAGS="${@:3}"
+NOISE_STDDEV="${3:-0}"
+FLAGS="${@:4}"
 FFHQ="dataset/ffhq"
 
 
@@ -12,11 +13,18 @@ function make_suffix() {
     if [ ${BLUR_RADIUS_STDDEV} -ne 0 ]; then
         suf="${suf}-G${BLUR_RADIUS_STDDEV}"
     fi
+
+    if [ ${NOISE_STDDEV} -ne 0 ]; then
+        suf="${suf}-N${NOISE_STDDEV}"
+    fi
+
     echo "${suf}"
 }
 
 
-FLAGS="${FLAGS} --loadSize ${SIZE} --fineSize ${SIZE} --data_path ${FFHQ} --display_freq 200 --update_html_freq 1000 --blur_radius_stddev ${BLUR_RADIUS_STDDEV}"
+FLAGS="${FLAGS} --loadSize ${SIZE} --fineSize ${SIZE} --data_path ${FFHQ} --display_freq 200 --update_html_freq 1000
+    --blur_radius_stddev ${BLUR_RADIUS_STDDEV}
+    --noise_stddev ${NOISE_STDDEV}"
 NAME_SUF="$(make_suffix)"
 
 
