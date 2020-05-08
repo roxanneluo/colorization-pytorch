@@ -4,6 +4,8 @@ from options.train_options import TrainOptions
 from models import create_model
 from util.visualizer import Visualizer
 
+import numpy as np
+from PIL import ImageFilter
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -15,7 +17,38 @@ class Options(TrainOptions):
     def initialize(self, parser):
         super().initialize(parser)
         parser.add_argument('--data_path')
+        parser.add_argument('--blur_radius_stddev', type=float, default=0)
         return parser
+
+
+class RandomGaussianBlur(object):
+    def __init__(self, stddev):
+        self.stddev = stddev
+
+    def __call__(self, image):
+        radius = np.abs(np.random.normal(scale=self.stddev))
+        return image.filter(ImageFilter.GaussianBlur(radius))
+
+
+
+def make_transform(opt):
+    Ts = [
+        transforms.RandomChoice([
+            transforms.Resize(opt.loadSize, interpolation=1),
+            transforms.Resize(opt.loadSize, interpolation=2),
+            transforms.Resize(opt.loadSize, interpolation=3),
+            transforms.Resize((opt.loadSize, opt.loadSize), interpolation=1),
+            transforms.Resize((opt.loadSize, opt.loadSize), interpolation=2),
+            transforms.Resize((opt.loadSize, opt.loadSize), interpolation=3)
+            #transforms.RandomChoice([transforms.RandomResizedCrop(opt.fineSize, interpolation=1),
+                                 #transforms.RandomResizedCrop(opt.fineSize, interpolation=2),
+                                 #transforms.RandomResizedCrop(opt.fineSize, interpolation=3)]),
+        ]),
+        transforms.RandomHorizontalFlip(),
+    ]
+    if opt.blur_radius_stddev > 0:
+        Ts.append(RandomGaussianBlur(opt.blur_radius_stddev))
+    return transforms.Compose(Ts + [transforms.ToTensor()])
 
 
 if __name__ == '__main__':
@@ -24,21 +57,7 @@ if __name__ == '__main__':
 
     opt.dataroot = pjoin(opt.data_path, opt.phase)
     dataset = torchvision.datasets.ImageFolder(opt.dataroot,
-                                               transform=transforms.Compose([
-                                                   transforms.RandomChoice([transforms.Resize(opt.loadSize, interpolation=1),
-                                                                            transforms.Resize(opt.loadSize, interpolation=2),
-                                                                            transforms.Resize(opt.loadSize, interpolation=3),
-                                                                            transforms.Resize((opt.loadSize, opt.loadSize), interpolation=1),
-                                                                            transforms.Resize((opt.loadSize, opt.loadSize), interpolation=2),
-                                                                            transforms.Resize((opt.loadSize, opt.loadSize), interpolation=3)]),
-                                                   #transforms.RandomChoice([transforms.RandomResizedCrop(opt.fineSize, interpolation=1),
-                                                                            #transforms.RandomResizedCrop(opt.fineSize, interpolation=2),
-                                                                            #transforms.RandomResizedCrop(opt.fineSize, interpolation=3)]),
-                                                   transforms.RandomHorizontalFlip(),
-                                                   transforms.ToTensor()]))
-                                                   # transforms.RandomChoice([transforms.ColorJitter(brightness=.05, contrast=.05, saturation=.05, hue=.05),
-                                                   #                          transforms.ColorJitter(brightness=0, contrast=0, saturation=.05, hue=.1),
-                                                   #                          transforms.ColorJitter(brightness=0, contrast=0, saturation=0, hue=0), ]),
+                                               transform=make_transform(opt))
     dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size, shuffle=True)
 
     dataset_size = len(dataset)
