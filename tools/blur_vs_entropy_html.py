@@ -19,10 +19,11 @@ def main(args):
     os.makedirs(data_dir, exist_ok=True)
 
     # create col args
-    col_args = [(0, 'real'), (0, 'gray')]
-    for r in args.blur_radii:
+    col_args = [(0, 'real'), ]
+    for r in [0] + args.blur_radii:
         sufs = [
             'blur_diff',
+            'gray',
             'entr',
             'reg',
         ]
@@ -34,15 +35,14 @@ def main(args):
     for name in tqdm(row_args):
         for r, suf in col_args:
             p_str = '1p000'
-            if r == 0:
+            in_dir = args.sharp_dir if r == 0 else args.in_dir_fmt.format(r)
+            if suf in ('real', 'gray'):
                 # real or gray
-                in_dir = args.sharp_dir
                 in_fn = pjoin(in_dir, f'{name}_{p_str}_{suf}.png')
                 out_fn = out_fmt.format(name=name, suf=suf, r=r)
                 copyfile(in_fn, out_fn)
                 continue
 
-            in_dir = args.in_dir_fmt.format(r)
 
             if suf != 'blur_diff':
                 # entropy + colorized
