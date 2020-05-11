@@ -200,7 +200,7 @@ def get_colorization_data(data_raw, opt, ab_thresh=5., p=.125, num_points=None):
     data['A'] = data_lab[:,[0,],:,:]
     data['B'] = data_lab[:,1:,:,:]
 
-    if opt.noise_stddev > 0:
+    if 'noise_stddev' in opt and opt.noise_stddev > 0:
         data['A'] = RandomGaussianNoise(opt.noise_stddev)(data['A'])
 
     if(ab_thresh > 0): # mask out grayscale images
